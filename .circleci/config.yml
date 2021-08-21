@@ -2,47 +2,7 @@ version: 2.1
 
 orbs:
   npm-publisher: uraway/npm-publisher@0.2.0
-  kurtosis-docs-checker:
-    jobs:
-      check_docs:
-        docker:
-          - image: cimg/node:15.3.0
-        resource_class: small
-        parameters:
-          markdown_link_check_config_json:
-            default: "{}"
-            description: Config JSON passed to markdown-link-check package (see https://www.npmjs.com/package/markdown-link-check for full details)
-            type: string
-        steps:
-          - checkout
-
-          # Gotchas I discovered when writing this:
-          # - Without the '--no-pager' flag, Git will print "WARNING: Terminal is not fully functional" and not display any output
-          # - Circle has no way of getting the PR base branch, so we have to hardcode develop :( See: https://ideas.circleci.com/cloud-feature-requests/p/provide-env-variable-for-branch-name-targeted-by-pull-request
-          # - The --exit-code flag to git-diff returns 0 on no changes, 1 on changes
-          # - We have to use 'origin/develop' rather than 'develop' because Circle does a shallow checkout, and 'develop' gets set to something weird and wrong that makes the check buggy
-          - run:
-              name: Verify changelog was updated
-              command: "! git --no-pager diff --exit-code origin/develop...HEAD docs/changelog.md"
-
-          - run:
-              name: Check links in Markdown docs
-              command: |
-                sudo npm install -g markdown-link-check
-                config_filepath="$(mktemp)"
-                cat \<< EOF > "${config_filepath}"
-                <<parameters.markdown_link_check_config_json>>
-                EOF
-
-                has_no_errors=true
-                # Inspired by https://github.com/open-telemetry/opentelemetry-collector/pull/1156/files/2244e61f4dd0378deffc00d939edf6f800687dcf
-                for filepath in $(find . -iname '*.md' | sort); do
-                    markdown-link-check --config "${config_filepath}" -qv "${filepath}" || has_no_errors=false
-                    # Wait to scan files so that we don't overload github with requests which may result in 429 responses
-                    sleep 2
-                done
-
-                "${has_no_errors}"
+  kurtosis-docs-checker: kurtosis-tech/docs-checker@0.2.0
 
 # NOTE: Because CircleCI jobs run on separate machines from each other, we duplicate steps (like checkout) between jobs. This is because doing the "correct" DRY
 #  refactoring of, "one job for checkout, one job for build Docker image, etc." would require a) persisting files between jobs and b) persisting Docker images between
@@ -94,8 +54,8 @@ workflows:
   build:
     jobs:
       # -- PR check jobs ------------------------------------------
-      - kurtosis-docs-checker/check_docs:
-          markdown_link_check_config_json: {}
+      - kurtosis-docs-checker/check-docs:
+          markdown-link-check-config-json: {}
           filters:
             branches:
               ignore:
@@ -116,12 +76,13 @@ workflows:
       # -- End PR check jobs ---------------------------------------
 
       # -- Artifact-publishing jobs --------------------------------
-      - publish_typescript:
-          context:
-            - npmjs-user
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: /^[0-9]+\.[0-9]+\.[0-9]+$/
+      # TODO UNCOMMENT WHEN READY
+      #- publish_typescript:
+      #    context:
+      #      - npmjs-user
+      #    filters:
+      #      branches:
+      #        ignore: /.*/
+      #      tags:
+      #        only: /^[0-9]+\.[0-9]+\.[0-9]+$/
       # -- End artifact-publishing jobs ----------------------------
