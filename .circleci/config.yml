@@ -5,8 +5,15 @@ orbs:
   kurtosis-docs-checker:
     jobs:
       check_docs:
-        executor: cimg/node:15.3.0
-        step:
+        docker:
+          - image: cimg/node:15.3.0
+        resource_class: small
+        parameters:
+          markdown_link_check_config_json:
+            default: "{}"
+            description: Config JSON passed to markdown-link-check package (see https://www.npmjs.com/package/markdown-link-check for full details)
+            type: string
+        steps:
           - checkout
 
           # Gotchas I discovered when writing this:
@@ -23,23 +30,8 @@ orbs:
               command: |
                 sudo npm install -g markdown-link-check
                 config_filepath="$(mktemp)"
-                cat << EOF > "${config_filepath}"
-                {
-                    "replacementPatterns": [
-                        {
-                            "pattern": "^../kurtosis-core",
-                            "replacement": "https://docs.kurtosistech.com/kurtosis-core"
-                        },
-                        {
-                            "pattern": "^../kurtosis-libs",
-                            "replacement": "https://docs.kurtosistech.com/kurtosis-libs"
-                        },
-                        {
-                            "pattern": "^../kurtosis-testsuite-api-lib",
-                            "replacement": "https://docs.kurtosistech.com/kurtosis-testsuite-api-lib"
-                        }
-                    ]
-                }
+                cat \<< EOF > "${config_filepath}"
+                <<parameters.markdown_link_check_config_json>>
                 EOF
 
                 has_no_errors=true
@@ -51,7 +43,6 @@ orbs:
                 done
 
                 "${has_no_errors}"
-
 
 # NOTE: Because CircleCI jobs run on separate machines from each other, we duplicate steps (like checkout) between jobs. This is because doing the "correct" DRY
 #  refactoring of, "one job for checkout, one job for build Docker image, etc." would require a) persisting files between jobs and b) persisting Docker images between
@@ -104,6 +95,7 @@ workflows:
     jobs:
       # -- PR check jobs ------------------------------------------
       - kurtosis-docs-checker/check_docs:
+          markdown_link_check_config_json: {}
           filters:
             branches:
               ignore:
