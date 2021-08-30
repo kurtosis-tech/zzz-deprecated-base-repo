@@ -1,5 +1,6 @@
 {
-    "//": "TODO TODO Add package name, version, description, etc. here",
+    "//": "TODO TODO Add package name, description, license, etc. here",
+    "version": "0.0.0",
     "main": "./build/index",
     "types": "./build/index",
     "scripts": {
