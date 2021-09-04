@@ -67,7 +67,7 @@ workflows:
                 - develop
                 - master
       - check_golang:
-          contexts:
+          context:
             # This pulls in KurtosisBot's Github token, so that we can read from our private repos
             - github-user
           filters:
