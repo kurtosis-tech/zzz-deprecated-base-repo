@@ -53,3 +53,7 @@ doc/tags
 
 .gradle
 build
+
+# Node
+node_modules
+yarn-error.log
