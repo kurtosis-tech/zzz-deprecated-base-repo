@@ -45,6 +45,10 @@ local.properties
 *.so
 *.dylib
 
+# Archive files
+*.tgz
+*.zip
+
 # External tool builders
 .externalToolBuilders/
 
