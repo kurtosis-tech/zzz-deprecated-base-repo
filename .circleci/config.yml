@@ -7,7 +7,7 @@ orbs:
 parameters:
   go-version:
     type: string
-    default: 1.15.13
+    default: 1.16
   node-version:
     type: string
     default: 16.13.0
