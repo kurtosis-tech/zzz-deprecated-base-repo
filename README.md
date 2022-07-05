@@ -1,3 +1,5 @@
+# DEPRECATION NOTICE: This repo is deprecated in favor of [the template repo](https://github.com/kurtosis-tech/template-repo)
+
 TODO REPLACE WITH REPO NAME
 ===========================
 TODO replace with repo description
